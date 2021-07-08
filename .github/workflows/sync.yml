@@ -1,0 +1,31 @@
+name: sync
+on:
+  schedule:
+    - cron: '1 0,15 * * *'
+  workflow_dispatch:
+  watch:
+    types: started
+  push:
+    branches: [ master ]
+  repository_dispatch:
+    types: sync
+jobs:
+  repo-sync:
+    env:
+      AC: ${{ secrets.AC }}
+      dst_key: ${{ secrets.GITEE_PRIVATE_KEY }} # 我自己同步到gitee使用，其他人可忽略
+    runs-on: ubuntu-latest
+    if: github.event.repository.owner.id == github.event.sender.id
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: sync JDDJ
+        uses: repo-sync/github-sync@v2
+        if: env.AC
+        with:
+          source_repo: "https://github.com/JDHelloWorld/jd_scripts.git"
+          source_branch: "main"
+          destination_branch: "main"
+          github_token: ${{ secrets.AC }}
